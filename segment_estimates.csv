@@ -1,0 +1,7 @@
+﻿key,name,vlan,endpoints,active_fraction,avg_mbps_per_active_endpoint,estimated_offered_mbps,external_fraction,estimated_external_mbps
+admin,Admin,10,100,0.5,1.0,50.0,0.3,15.0
+faculty,Faculty,20,150,0.6,2.0,180.0,0.35,62.99999999999999
+students,Students,30,800,0.35,1.5,420.0,0.25,105.0
+iot,IoT,40,200,0.9,0.05,9.0,0.1,0.9
+servers,Servers,50,20,0.8,5.0,80.0,0.2,16.0
+guest,Guest,60,80,0.4,2.0,64.0,0.8,51.2

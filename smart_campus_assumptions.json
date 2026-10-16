@@ -1,0 +1,103 @@
+{
+  "notice": "EXAMPLE INPUTS ONLY. The 1,350 total is the project sizing assumption; the segment distributions, active fractions, rates, and external fractions below are illustrative placeholders, not measured campus data. Replace them with your team's documented assumptions before using results in the final report.",
+  "design_endpoint_assumption": 1350,
+  "thresholds": {
+    "warning_utilization_percent": 70,
+    "critical_utilization_percent": 85,
+    "target_utilization_percent": 70,
+    "headroom_factor": 1.25
+  },
+  "segments": [
+    {
+      "key": "admin",
+      "name": "Admin",
+      "vlan": 10,
+      "endpoints": 100,
+      "active_fraction": 0.50,
+      "avg_mbps_per_active_endpoint": 1.0,
+      "external_fraction": 0.30
+    },
+    {
+      "key": "faculty",
+      "name": "Faculty",
+      "vlan": 20,
+      "endpoints": 150,
+      "active_fraction": 0.60,
+      "avg_mbps_per_active_endpoint": 2.0,
+      "external_fraction": 0.35
+    },
+    {
+      "key": "students",
+      "name": "Students",
+      "vlan": 30,
+      "endpoints": 800,
+      "active_fraction": 0.35,
+      "avg_mbps_per_active_endpoint": 1.5,
+      "external_fraction": 0.25
+    },
+    {
+      "key": "iot",
+      "name": "IoT",
+      "vlan": 40,
+      "endpoints": 200,
+      "active_fraction": 0.90,
+      "avg_mbps_per_active_endpoint": 0.05,
+      "external_fraction": 0.10
+    },
+    {
+      "key": "servers",
+      "name": "Servers",
+      "vlan": 50,
+      "endpoints": 20,
+      "active_fraction": 0.80,
+      "avg_mbps_per_active_endpoint": 5.0,
+      "external_fraction": 0.20
+    },
+    {
+      "key": "guest",
+      "name": "Guest",
+      "vlan": 60,
+      "endpoints": 80,
+      "active_fraction": 0.40,
+      "avg_mbps_per_active_endpoint": 2.0,
+      "external_fraction": 0.80
+    }
+  ],
+  "links": [
+    {
+      "name": "Core Fa0/2 - Admin/Guest Switch0 Gi0/1",
+      "capacity_mbps": 100,
+      "mode": "aggregate",
+      "segment_keys": ["admin", "guest"],
+      "notes": "Conservative aggregate upper-bound estimate for the shared Admin and Guest trunk. Traffic staying within the same access switch/VLAN may not cross this uplink."
+    },
+    {
+      "name": "Core Fa0/1 - Student Switch1 Gi0/1",
+      "capacity_mbps": 100,
+      "mode": "aggregate",
+      "segment_keys": ["students"],
+      "notes": "Conservative aggregate estimate for traffic associated with the Student segment. Local same-switch traffic may not cross the uplink."
+    },
+    {
+      "name": "Core Gi0/2 - IoT Switch2 Gi0/1",
+      "capacity_mbps": 1000,
+      "mode": "aggregate",
+      "segment_keys": ["iot"],
+      "notes": "Estimated aggregate IoT demand."
+    },
+    {
+      "name": "Core Gi0/1 - EDGE-ROUTER G0/1 campus egress",
+      "capacity_mbps": 1000,
+      "mode": "external",
+      "segment_keys": ["admin", "faculty", "students", "iot", "servers", "guest"],
+      "notes": "Estimated traffic destined outside the campus subnets; VLAN-to-VLAN traffic routed by the Core does not normally cross this uplink."
+    },
+    {
+      "name": "ISP Router0 G0/1 - outside segment/server path",
+      "capacity_mbps": 1000,
+      "mode": "external",
+      "segment_keys": ["admin", "faculty", "students", "iot", "servers", "guest"],
+      "notes": "Approximate upstream demand estimate. Actual Packet Tracer web/ping tests validate reachability, not this throughput value."
+    }
+  ]
+}
