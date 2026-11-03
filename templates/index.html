@@ -1,0 +1,197 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Campus Bandwidth Analyzer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container nav-inner">
+            <a class="brand" href="#top">Smart Campus <span>Analyzer</span></a>
+            <div class="nav-links">
+                <a href="#settings">Settings</a>
+                <a href="#segments">Segments</a>
+                <a href="#links">Links</a>
+                <a href="#results">Results</a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="app-header" id="top">
+        <div class="container">
+            <h1>Smart Campus Bandwidth Analyzer</h1>
+            <p class="subtitle">Live link utilization from editable assumptions</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="alert" id="errorBanner" hidden></div>
+
+        <section class="card" id="settings">
+            <div class="card-header">
+                <h2>Global Settings</h2>
+                <span class="hint">Total endpoints must match sum of segments</span>
+            </div>
+            <div class="grid two">
+                <div class="field">
+                    <label for="design_endpoint_assumption">Design endpoint assumption</label>
+                    <input type="number" id="design_endpoint_assumption" min="0" step="1">
+                </div>
+                <div class="field">
+                    <label for="notice">Notice</label>
+                    <input type="text" id="notice" placeholder="Optional note">
+                </div>
+            </div>
+            <div class="grid four">
+                <div class="field">
+                    <label for="warning_utilization_percent">Warning %</label>
+                    <input type="number" id="warning_utilization_percent" min="1" max="99" step="1">
+                </div>
+                <div class="field">
+                    <label for="critical_utilization_percent">Critical %</label>
+                    <input type="number" id="critical_utilization_percent" min="1" max="100" step="1">
+                </div>
+                <div class="field">
+                    <label for="target_utilization_percent">Target %</label>
+                    <input type="number" id="target_utilization_percent" min="1" max="100" step="1">
+                </div>
+                <div class="field">
+                    <label for="headroom_factor">Headroom factor</label>
+                    <input type="number" id="headroom_factor" min="1" max="3" step="0.01">
+                </div>
+            </div>
+        </section>
+
+        <section class="card" id="segments">
+            <div class="card-header">
+                <h2>Segments</h2>
+                <div class="header-actions">
+                    <button class="btn ghost" id="resetToDefault">Reset to defaults</button>
+                </div>
+            </div>
+            <div class="table-wrap">
+                <table class="data-table" id="segmentsTable">
+                    <thead>
+                        <tr>
+                            <th>Key</th>
+                            <th>Name</th>
+                            <th>VLAN</th>
+                            <th>Endpoints</th>
+                            <th>Active</th>
+                            <th>Avg Mbps/active</th>
+                            <th>Ext. fraction</th>
+                            <th>Offered Mbps</th>
+                            <th>Ext. Mbps</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="sum-bar">
+                <span>Total endpoints: <strong id="totalEndpoints">0</strong></span>
+                <span>Total offered: <strong id="totalOffered">0.00 Mbps</strong></span>
+                <span>Total external: <strong id="totalExternal">0.00 Mbps</strong></span>
+                <span id="sumStatus" class="pill neutral">Match</span>
+            </div>
+        </section>
+
+        <section class="card" id="links">
+            <div class="card-header">
+                <h2>Links</h2>
+            </div>
+            <div class="table-wrap">
+                <table class="data-table" id="linksTable">
+                    <thead>
+                        <tr>
+                            <th>Link</th>
+                            <th>Capacity (Mbps)</th>
+                            <th>Mode</th>
+                            <th>Segments</th>
+                            <th>Demand (Mbps)</th>
+                            <th>Utilization</th>
+                            <th>Status</th>
+                            <th>Suggested</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="card" id="results">
+            <div class="card-header">
+                <h2>Live Results</h2>
+                <div class="header-actions">
+                    <button class="btn ghost" id="saveConfig">Save config</button>
+                    <button class="btn ghost" id="exportLinks">Export links CSV</button>
+                    <button class="btn ghost" id="exportSegments">Export segments CSV</button>
+                </div>
+            </div>
+            <div class="results-grid" id="resultsGrid"></div>
+        </section>
+
+        <section class="card" id="breakdown">
+            <div class="card-header">
+                <h2>Segment Breakdown</h2>
+            </div>
+            <div class="bars" id="segmentBars"></div>
+        </section>
+    </main>
+
+    <footer class="app-footer">
+        <div class="container">
+            <span>Estimates from assumptions â€¢ Not measured from Packet Tracer</span>
+        </div>
+    </footer>
+
+    <template id="segmentRowTpl">
+        <tr>
+            <td class="mono key"></td>
+            <td><input type="text" class="input-sm name"></td>
+            <td><input type="number" class="input-sm vlan"></td>
+            <td><input type="number" class="input-sm endpoints" min="0" step="1"></td>
+            <td>
+                <div class="slider-group">
+                    <input type="range" class="slider active" min="0" max="1" step="0.01">
+                    <input type="number" class="input-xs active-num" min="0" max="1" step="0.01">
+                </div>
+            </td>
+            <td><input type="number" class="input-sm avg" min="0" step="0.01"></td>
+            <td>
+                <div class="slider-group">
+                    <input type="range" class="slider ext" min="0" max="1" step="0.01">
+                    <input type="number" class="input-xs ext-num" min="0" max="1" step="0.01">
+                </div>
+            </td>
+            <td class="mono offered">0.00</td>
+            <td class="mono external">0.00</td>
+        </tr>
+    </template>
+
+    <template id="linkRowTpl">
+        <tr>
+            <td class="link-name"></td>
+            <td><input type="number" class="input-sm cap" min="1" step="1"></td>
+            <td class="mono mode"></td>
+            <td class="mono segkeys"></td>
+            <td class="mono demand">0.00</td>
+            <td>
+                <div class="util">
+                    <div class="util-bar-bg">
+                        <div class="util-bar"></div>
+                    </div>
+                    <span class="util-text mono"></span>
+                </div>
+            </td>
+            <td><span class="pill"></span></td>
+            <td class="mono sugg"></td>
+            <td class="notes"><input type="text" class="input-sm note"></td>
+        </tr>
+    </template>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
